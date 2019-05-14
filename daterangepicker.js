@@ -350,11 +350,12 @@
             }
 
             var list = '<ul>';
+            var activeClass = !!options.ranges[range][2] ? 'active' : '';
             for (range in this.ranges) {
-                list += '<li data-range-key="' + range + '">' + range + '</li>';
+                list += '<li class="' + activeClass + '" data-range-key="' + range + '">' + range + '</li>';
             }
             if (this.showCustomRangeLabel) {
-                list += '<li data-range-key="' + this.locale.customRangeLabel + '">' + this.locale.customRangeLabel + '</li>';
+                list += '<li class="' + activeClass + '" data-range-key="' + this.locale.customRangeLabel + '">' + this.locale.customRangeLabel + '</li>';
             }
             list += '</ul>';
             this.container.find('.ranges').prepend(list);
@@ -1546,7 +1547,6 @@
             this.element.off('.daterangepicker');
             this.element.removeData();
         }
-
     };
 
     $.fn.daterangepicker = function(options, callback) {
