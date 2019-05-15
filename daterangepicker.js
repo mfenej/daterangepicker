@@ -345,8 +345,8 @@
                 var elem = document.createElement('textarea');
                 elem.innerHTML = range;
                 var rangeHtml = elem.value;
-
-                this.ranges[rangeHtml] = [start, end];
+                var isActive = !!options.ranges[range][2];
+                this.ranges[rangeHtml] = [start, end, isActive];
             }
 
             var list = '<ul>';
@@ -1191,16 +1191,24 @@
             this.element.trigger('hideCalendar.daterangepicker', this);
         },
 
+        clearAllSelectedLabels: function(){
+            for (var range in this.ranges) {
+                this.ranges[range][2] = false;
+            }
+        },
+
         clickRange: function(e) {
+            
             var label = e.target.getAttribute('data-range-key');
             this.chosenLabel = label;
             if (label == this.locale.customRangeLabel) {
                 this.showCalendars();
             } else {
                 var dates = this.ranges[label];
+                this.clearAllSelectedLabels()
                 this.startDate = dates[0];
                 this.endDate = dates[1];
-
+                this.ranges[label][2] = true;
                 if (!this.timePicker) {
                     this.startDate.startOf('day');
                     this.endDate.endOf('day');
@@ -1333,11 +1341,13 @@
                     var second = this.timePickerSeconds ? parseInt(this.container.find('.right .secondselect').val(), 10) : 0;
                     date = date.clone().hour(hour).minute(minute).second(second);
                 }
-                this.setEndDate(date.clone());
+                this.setEndDate(date.clone());;
+                this.clearAllSelectedLabels()
                 if (this.autoApply) {
                   this.calculateChosenLabel();
                   this.clickApply();
                 }
+                
             }
 
             if (this.singleDatePicker) {
@@ -1357,21 +1367,28 @@
             var customRange = true;
             var i = 0;
             for (var range in this.ranges) {
-              if (this.timePicker) {
-                    var format = this.timePickerSeconds ? "YYYY-MM-DD HH:mm:ss" : "YYYY-MM-DD HH:mm";
-                    //ignore times when comparing dates if time picker seconds is not enabled
-                    if (this.startDate.format(format) == this.ranges[range][0].format(format) && this.endDate.format(format) == this.ranges[range][1].format(format)) {
-                        customRange = false;
-                        this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').attr('data-range-key');
-                        break;
+                var isActive = !!this.ranges[range][2];
+                if(!isActive){
+                    if (this.timePicker) {
+                            var format = this.timePickerSeconds ? "YYYY-MM-DD HH:mm:ss" : "YYYY-MM-DD HH:mm";
+                            //ignore times when comparing dates if time picker seconds is not enabled
+                            if (this.startDate.format(format) == this.ranges[range][0].format(format) && this.endDate.format(format) == this.ranges[range][1].format(format)) {
+                                customRange = false;
+                                this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').attr('data-range-key');
+                                break;
+                            }
+                        } else {
+                            //ignore times when comparing dates if time picker is not enabled
+                            if (this.startDate.format('YYYY-MM-DD') == this.ranges[range][0].format('YYYY-MM-DD') && this.endDate.format('YYYY-MM-DD') == this.ranges[range][1].format('YYYY-MM-DD')) {
+                                customRange = false;
+                                this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').attr('data-range-key');
+                                break;
+                        }
                     }
-                } else {
-                    //ignore times when comparing dates if time picker is not enabled
-                    if (this.startDate.format('YYYY-MM-DD') == this.ranges[range][0].format('YYYY-MM-DD') && this.endDate.format('YYYY-MM-DD') == this.ranges[range][1].format('YYYY-MM-DD')) {
-                        customRange = false;
-                        this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').attr('data-range-key');
-                        break;
-                    }
+                }else{
+                    this.chosenLabel = this.container.find('.ranges li:eq(' + i + ')').addClass('active').attr('data-range-key');
+                    customRange = false;
+                    break;
                 }
                 i++;
             }
